@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+         body {
+         font-family: 'Arial', sans-serif;
+         background-color: #dde0e7;
+         color: #716894;
+         margin: 0;
+         padding: 0;
+         }
+         .container-wrapper {
+         padding: 20px;
+         background-color: #dde0e7;
+         overflow: hidden;
+         }
+         .file-upload-container {
+         background-color: #dde0e7;
+         color: #fff;
+         padding: 10px;
+         text-align: center;
+         }
+         input[type="file"] {
+         display: none;
+         }
+         label {
+         display: inline-block;
+         padding: 10px 20px;
+         background-color: #ffffff;
+         color: #716894;
+         cursor: pointer;
+         border-radius: 3px;
+         font-weight: bold;
+         }
+         label:hover {
+         background-color: #cecece;
+         }
+         button {
+         background-color: #ffffff;
+         color: #716894;
+         border: none;
+         padding: 10px 20px;
+         cursor: pointer;
+         border-radius: 3px;
+         font-weight: bold;
+         }
+         button:disabled {
+         background-color: #ccc;
+         cursor: not-allowed;
+         }
+         button:hover {
+         background-color: #cecece;
+         }
+         .item-container {
+         display: flex;
+         flex-wrap: wrap;
+         justify-content: space-between;
+         margin: 10px -10px;
+         }
+         .item {
+         width: calc(33.33% - 20px);
+         margin: 10px;
+         padding: 25px;
+         box-sizing: border-box;
+         background-color: #ffffff;
+         border-radius: 10px;
+         overflow: hidden;
+         position: relative;
+         box-shadow: -1px -1px 5px rgba(255,255,255,0.5),
+         3px 3px 8px rgba(20,20,20,0.12);
+         }
+         .value-slider {
+         width: 100%;
+         margin-top: 15px;
+         appearance: none;
+         height: 20px;
+         border-radius: 15px;
+         background: linear-gradient(to right, #bd5044, #ebb51d, #4dc67c, #ebb51d, #bd5044);
+         outline: none;
+         opacity: 1;
+         -webkit-transition: .2s;
+         transition: opacity .2s;
+         }
+         .value-slider:hover {
+         opacity: 1;
+         }
+         .value-slider::-webkit-slider-thumb {
+         appearance: none;
+         width: 40px;
+         height: 40px;
+         border-radius: 50%;
+         background: #fff;
+         border: 4px solid #4285f4;
+         cursor: pointer;
+         box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+         position: relative;
+         z-index: 1;
+         color: #4285f4;
+         font-weight: bold;
+         display: flex;
+         justify-content: center;
+         align-items: center;
+         border: 4px solid var(--thumb-border-color, #4285f4);
+         }
+         .value-slider::-webkit-slider-thumb::before {
+         content: attr(value);
+         position: absolute;
+         top: 50%;
+         left: 50%;
+         transform: translate(-50%, -50%);
+         color: #4285f4;
+         font-weight: bold;
+         }
+         .slider-label {
+         display: flex;
+         justify-content: space-between;
+         margin-bottom: 10px;
+         font-weight: bold;
+         }
+         .slider-value-label {
+         position: absolute;
+         top: 20px;
+         left: 50%;
+         transform: translateX(-50%);
+         color: #716894;
+         font-weight: bold;
+         font-size: 12px;
+         }
+         p {
+         margin: 25px 10px 0 0;
+         }
+         .slider-save-container {
+         position: relative;
+         }
+         .save-button {
+         float: right;
+         margin-top: 25px;
+         }
+         .saved-message {
+         position: absolute;
+         top: 0;
+         right: 0;
+         background-color: #4caf50;
+         color: #fff;
+         padding: 5px 10px;
+         border-radius: 3px;
+         }
+         @media (max-width: 600px) {
+         .item {
+         width: calc(100% - 20px);
+         }
+         }
+      </style>
+      <title>Balance Dimensions</title>
+   </head>
+   <body>
+      <div class="file-upload-container">
+         <label for="fileInput">UPLOAD</label>
+         <input type="file" id="fileInput" accept=".txt">
+         <button onclick="readFile()">OK</button>
+         <button onclick="exportJson()" id="exportButton" disabled>SAVE</button>
+      </div>
+      <div class="container-wrapper">
+         <div id="container" class="item-container"></div>
+      </div>
+      <script>
+         var jsonData;
+         var saveButton;
+         
+         var githubToken;
+         
+         async function readFile() {
+         var fileInput = document.getElementById('fileInput');
+         var file = fileInput.files[0];
+         
+         if (file) {
+             var reader = new FileReader();
+         
+             reader.onload = async function (e) {
+                 githubToken = e.target.result.trim();
+                 var gistId = 'efc40a6067a30d25f99028647c948b53';
+         
+                 try {
+                     var gistContent = await fetchGistData(gistId);
+                     if (gistContent) {
+                         jsonData = JSON.parse(gistContent);
+                         renderItems(jsonData);
+                         setInitialThumbColors();
+                         setInitialLabelColors();
+                         enableExportButton(false);
+                     } else {
+                         alert('Failed to fetch Gist data.');
+                     }
+                 } catch (error) {
+                     alert('Error fetching Gist data: ' + error);
+                 }
+             };
+         
+             reader.readAsText(file);
+         } else {
+             alert('Please select a file.');
+         }
+         }
+         
+         
+         async function fetchGistData(gistId) {
+         var gistApiUrl = `https://api.github.com/gists/${gistId}?timestamp=${Date.now()}`;
+         
+         try {
+             var response = await fetch(gistApiUrl);
+             var gistData = await response.json();
+             return gistData.files[Object.keys(gistData.files)[0]].content;
+         } catch (error) {
+             console.error('Error fetching Gist data:', error);
+             return null;
+         }
+         }
+         
+         
+         
+         function updateThumbBorderColor(valueSlider, valueLabel) {
+             var position = (valueSlider.value - valueSlider.min) / (valueSlider.max - valueSlider.min);
+             var thumbBorderColor = getPositionColor(position);
+             valueSlider.style.setProperty('--thumb-border-color', thumbBorderColor);
+         
+             var color = RGBToHex(hexToRGB(thumbBorderColor));
+             valueLabel.style.color = color;
+         
+             enableExportButton(true);
+         }
+         
+         function getPositionColor(position) {
+             var value = Math.round(position * 100);
+             var color;
+             if (value <= 25) {
+                 color = interpolateColors('#bd5044', '#ebb51d', value / 25);
+             } else if (value <= 50) {
+                 color = interpolateColors('#ebb51d', '#4dc67c', (value - 25) / 25);
+             } else if (value <= 75) {
+                 color = interpolateColors('#4dc67c', '#ebb51d', (value - 50) / 25);
+             } else {
+                 color = interpolateColors('#ebb51d', '#bd5044', (value - 75) / 25);
+             }
+             return color;
+         }
+         
+         function interpolateColors(color1, color2, ratio) {
+             var color1RGB = hexToRGB(color1);
+             var color2RGB = hexToRGB(color2);
+             var interpolatedColor = [
+                 Math.round(color1RGB[0] + ratio * (color2RGB[0] - color1RGB[0])),
+                 Math.round(color1RGB[1] + ratio * (color2RGB[1] - color1RGB[1])),
+                 Math.round(color1RGB[2] + ratio * (color2RGB[2] - color1RGB[2]))
+             ];
+             var hexColor = RGBToHex(interpolatedColor);
+             return hexColor;
+         }
+         
+         function hexToRGB(hex) {
+             var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+             hex = hex.replace(shorthandRegex, function (m, r, g, b) {
+                 return r + r + g + g + b + b;
+             });
+         
+             var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+             return result ? [
+                 parseInt(result[1], 16),
+                 parseInt(result[2], 16),
+                 parseInt(result[3], 16)
+             ] : null;
+         }
+         
+         function RGBToHex(rgb) {
+             return '#' + rgb.map(function (value) {
+                 return ('0' + value.toString(16)).slice(-2);
+             }).join('');
+         }
+         
+         
+         function setInitialThumbColors() {
+         var sliders = document.querySelectorAll('.value-slider');
+         sliders.forEach(function (slider, index) {
+             var valueLabel = document.querySelector('.slider-value-label');
+             updateThumbBorderColor(slider, valueLabel);
+         });
+         }
+         
+         function setInitialLabelColors() {
+         var sliders = document.querySelectorAll('.value-slider');
+         sliders.forEach(function (slider, index) {
+             var valueLabel = document.querySelectorAll('.slider-value-label')[index];
+             updateThumbBorderColor(slider, valueLabel);
+         });
+         }
+         
+         function getMessageForValue(value, valueLabel, index) {
+             if (jsonData && jsonData[index] && jsonData[index].myState) {
+                 var item = jsonData[index];
+                 var messagePromise = getMessagePromise(value, item);
+                 messagePromise.then(message => {
+                     valueLabel.textContent = message;
+                 });
+             } else {
+                 console.log("Message not available");
+                 valueLabel.textContent = "Message not available";
+             }
+         }
+         
+         function getMessagePromise(value, item) {
+             return new Promise(resolve => {
+                 if (value >= 0 && value <= 13) {
+                     resolve(item.myState.A4);
+                 } else if (value >= 14 && value <= 25) {
+                     resolve(item.myState.A3);
+                 } else if (value >= 26 && value <= 38) {
+                     resolve(item.myState.A2);
+                 } else if (value >= 39 && value <= 49) {
+                     resolve(item.myState.A1);
+                 } else if (value == 50) {
+                     resolve(item.myState.Mid);
+                 } else if (value >= 51 && value <= 62) {
+                     resolve(item.myState.B1);
+                 } else if (value >= 63 && value <= 75) {
+                     resolve(item.myState.B2);
+                 } else if (value >= 76 && value <= 87) {
+                     resolve(item.myState.B3);
+                 } else if (value >= 88 && value <= 100) {
+                     resolve(item.myState.B4);
+                 } else {
+                     console.log("Message not available");
+                     resolve("Message not available");
+                 }
+             });
+         }
+         
+         function createItemDiv(item, index) {
+             var itemDiv = document.createElement('div');
+             itemDiv.className = 'item';
+             var sliderContainer = document.createElement('div');
+             sliderContainer.className = 'slider-label';
+             sliderContainer.innerHTML = `<div>${item.dimensionA}</div><div>${item.dimensionB}</div>`;
+             itemDiv.appendChild(sliderContainer);       
+             var valueLabel = document.createElement('div');
+             valueLabel.className = 'slider-value-label';
+             valueLabel.textContent = item.myState[item.value]; // Initial value label based on the logic
+             sliderContainer.appendChild(valueLabel);
+             var valueSlider = document.createElement('input');
+             valueSlider.type = 'range';
+             valueSlider.className = 'value-slider';
+             valueSlider.min = 0;
+             valueSlider.max = 100;
+             valueSlider.value = item.value;
+         
+             valueSlider.addEventListener('input', function () {
+                 updateThumbBorderColor(valueSlider, valueLabel);
+                 var message = getMessageForValue(valueSlider.value, valueLabel, index);
+                 if (message !== "Message not available") {
+                     valueLabel.textContent = message;
+                     saveButton.disabled = false;
+                     saveButton.style.backgroundColor = '#4285f4';
+                     saveButton.style.color = '#ffffff';
+                 }
+             });
+         
+             sliderContainer.appendChild(valueSlider);
+             var sliderSaveContainer = document.createElement('div');
+             sliderSaveContainer.className = 'slider-save-container';
+             sliderSaveContainer.appendChild(valueSlider);
+         
+             var saveButton = document.createElement('button');
+             saveButton.textContent = 'Save';
+             saveButton.className = 'save-button';
+             saveButton.disabled = true;
+             saveButton.addEventListener('click', function () {
+                 saveValue(item, valueSlider.value);
+                 saveButton.disabled = true;
+                 saveButton.style.backgroundColor = '#ccc';
+                 var savedMessage = document.createElement('div');
+                 savedMessage.textContent = 'Saved';
+                 savedMessage.className = 'saved-message';
+                 itemDiv.appendChild(savedMessage);
+                 setTimeout(function () {
+                     itemDiv.removeChild(savedMessage);
+                 }, 1000);
+             });
+             sliderSaveContainer.appendChild(saveButton);
+             itemDiv.appendChild(sliderSaveContainer);
+             var description = document.createElement('p');
+             description.textContent = item.description;
+             itemDiv.appendChild(description);
+         
+             return itemDiv;
+         }
+         
+         function saveValue(item, newValue) {
+             item.value = newValue;
+             enableExportButton(true);
+         }
+         
+         function renderItems(jsonData) {
+             var container = document.getElementById('container');
+             container.innerHTML = '';
+             jsonData.forEach(function (item, index) {
+                 var itemDiv = createItemDiv(item, index);
+                 container.appendChild(itemDiv);
+                 var valueSlider = itemDiv.querySelector('.value-slider');
+                 var valueLabel = itemDiv.querySelector('.slider-value-label');
+                 getMessageForValue(valueSlider.value, valueLabel, index);
+             });
+         }
+         
+         function enableExportButton(enable) {
+             var exportButton = document.getElementById('exportButton');
+             exportButton.disabled = !enable;
+         }
+         
+         async function exportJson() {
+         var updatedJson = getUpdatedJson();
+         var gistId = 'efc40a6067a30d25f99028647c948b53';
+         
+         try {
+             var existingGistData = await fetchGistData(gistId, githubToken);
+             if (!existingGistData) {
+                 alert('Failed to fetch existing Gist data.');
+                 return;
+             }
+         
+             var updatedContent = JSON.stringify(updatedJson, null, 2);
+             var updatedGistData = { files: { 'dimensions.json': { content: updatedContent } } };
+             var success = await updateGist(gistId, githubToken, updatedGistData);
+             if (success) {
+                 alert('Data successfully exported to Gist!');
+             } else {
+                 alert('Failed to update Gist data.');
+             }
+         } catch (error) {
+             alert('Error exporting data to Gist: ' + error);
+         } 
+         window.location.reload(true);
+         }
+         
+         async function updateGist(gistId, githubToken, updatedGistData) {
+         var gistApiUrl = `https://api.github.com/gists/${gistId}`;
+         
+         try {
+             var response = await fetch(gistApiUrl, {
+                 method: 'PATCH',
+                 headers: {
+                     Authorization: `Bearer ${githubToken}`,
+                     'Content-Type': 'application/json',
+                 },
+                 body: JSON.stringify(updatedGistData),
+             });
+         
+             return response.ok;
+         } catch (error) {
+             console.error('Error updating Gist data:', error);
+             return false;
+         }
+         }
+         
+         function getUpdatedJson() {
+             var sliders = document.querySelectorAll('.value-slider');
+             var updatedJson = [];
+             sliders.forEach(function (slider, index) {
+                 var item = jsonData[index];
+                 item.value = slider.value;
+                 updatedJson.push(item);
+             });
+             return updatedJson;
+         }
+      </script>
+   </body>
+</html>
