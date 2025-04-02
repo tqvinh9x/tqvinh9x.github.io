@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>test 1</title>
+      <link rel="stylesheet" href="track.css">
+   </head>
+   <body>
+      <div id="toastContainer"></div>
+      <div id="initial-overlay">
+         <div id="bank-box">
+            <h2>Hãy nhập thông tin tài khoản ngân hàng của bạn.</h2>
+            <input type="password" id="bank-number" placeholder="Nhập thẻ VISA của bạn..." autocomplete="off">
+            <button onclick="verifyBank()">Xác nhận</button>
+         </div>
+      </div>
+      <h1 id="aspect-title"></h1>
+      <div id="controls">
+         <select id="aspect-dropdown">
+            <option value="" disabled selected></option>
+         </select>
+         <button id="bak-btn" onclick="backupTrack()"></button>
+         <button id="save-btn" onclick="saveFinalData()"></button>
+         <label id="pixel-note-mode-lbl">
+         <input type="checkbox" id="pixel-note-mode" />
+         </label>
+      </div>
+      <div id="grid-container"></div>
+      <br />
+      <ul id="value-list"></ul>
+      <div id="popup-container">
+         <div id="popup-content">
+            <h3 id="popup-header"></h3>
+            <textarea id="popup-textarea" placeholder=""></textarea>
+            <br /><br />
+            <button id="popup-save-btn" disabled>Lưu</button>
+            <button id="popup-close-btn">Đóng</button>
+         </div>
+      </div>
+      <div id="master-pixel-popup-container">
+         <div id="master-pixel-popup-content">
+            <h3 id="master-pixel-popup-title"></h3>
+            <div id="master-pixel-popup-body"></div>
+            <br />
+            <button id="master-pixel-popup-close-btn">Đóng</button>
+         </div>
+      </div>
+      <script src="track.js"></script>
+   </body>
+</html>

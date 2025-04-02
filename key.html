@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>test 3</title>
+      <link rel="stylesheet" href="key.css">
+      <script src="uuid.js"></script>
+   </head>
+   <body>
+      <div id="toastContainer"></div>
+      <div id="initial-overlay">
+         <div id="bank-box">
+            <h2>Hãy nhập thông tin tài khoản ngân hàng của bạn.</h2>
+            <input type="password" id="bank-number" placeholder="Nhập thẻ VISA của bạn..." autocomplete="off">
+            <button onclick="verifyBank()">Xác nhận</button>
+         </div>
+      </div>
+	  <h2 id="big-ttl" style="text-align: center; font-weight: bold;"></h2>
+      <div class="search-container">
+         <button id="add-btn-id" class="add-btn" onclick="showAddPopup()"></button>
+         <input type="text" id="searchInput" class="search-input" placeholder="Enter tag...">
+         <button id="srch-btn" onclick="onSearchData()" class="search-button"></button>
+         <button id="shw-all" onclick="showAllItems()" class="show-all-button"></button>
+         <button id="bak-btn" onclick="backupServices()"></button>
+         <button id="save-data" onclick="saveFinalNotes()"></button>
+      </div>
+      <div class="container">
+         <script src="key.js"></script>
+      </div>
+   </body>
+</html>
