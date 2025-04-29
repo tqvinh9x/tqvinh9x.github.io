@@ -4,7 +4,7 @@
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>test 1</title>
-      <link rel="stylesheet" href="track.css">
+      <link rel="stylesheet" href="trackPageStyle.css">
    </head>
    <body>
       <div id="toastContainer"></div>
@@ -17,11 +17,16 @@
       </div>
       <h1 id="aspect-title"></h1>
       <div id="controls">
+		  <!-- Năm và nút Xem -->
+	   <input type="text" id="year-input" placeholder="" style="width: 70px; margin-right: 5px;" />
+	   <button onclick="visitArchives()">Xem</button>
+   
          <select id="aspect-dropdown">
             <option value="" disabled selected></option>
          </select>
          <button id="bak-btn" onclick="backupTrack()"></button>
          <button id="save-btn" onclick="saveFinalData()"></button>
+         <!-- Checkbox for Pixel-Color (note) Mode -->
          <label id="pixel-note-mode-lbl">
          <input type="checkbox" id="pixel-note-mode" />
          </label>
@@ -29,6 +34,7 @@
       <div id="grid-container"></div>
       <br />
       <ul id="value-list"></ul>
+      <!-- Popup container for double-click notes in Pixel-Color Mode -->
       <div id="popup-container">
          <div id="popup-content">
             <h3 id="popup-header"></h3>
@@ -38,6 +44,7 @@
             <button id="popup-close-btn">Đóng</button>
          </div>
       </div>
+      <!-- Popup for masterPixel summary -->
       <div id="master-pixel-popup-container">
          <div id="master-pixel-popup-content">
             <h3 id="master-pixel-popup-title"></h3>
@@ -46,6 +53,7 @@
             <button id="master-pixel-popup-close-btn">Đóng</button>
          </div>
       </div>
-      <script src="track.js"></script>
+	  <script src="yearConfig.js"></script>
+      <script src="trackPageScript.js"></script>
    </body>
 </html>
